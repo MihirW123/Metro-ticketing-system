@@ -2,18 +2,23 @@ package com.metro.ticketing.config;
 
 import io.swagger.v3.oas.models.Components;
 import io.swagger.v3.oas.models.OpenAPI;
+import io.swagger.v3.oas.models.Operation;
 import io.swagger.v3.oas.models.info.Contact;
 import io.swagger.v3.oas.models.info.Info;
 import io.swagger.v3.oas.models.info.License;
 import io.swagger.v3.oas.models.security.SecurityRequirement;
 import io.swagger.v3.oas.models.security.SecurityScheme;
+import org.springdoc.core.customizers.OperationCustomizer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.web.method.HandlerMethod;
+
+import java.util.Collections;
 
 @Configuration
 public class OpenApiConfig {
 
-    private static final String SECURITY_SCHEME_NAME = "Basic Authentication";
+    public static final String SECURITY_SCHEME_NAME = "basicAuth";
 
     @Bean
     public OpenAPI metroTicketingOpenAPI() {
@@ -31,5 +36,15 @@ public class OpenApiConfig {
                                 .type(SecurityScheme.Type.HTTP)
                                 .scheme("basic")
                                 .description("Enter your database username (contact) and password.")));
+    }
+
+    @Bean
+    public OperationCustomizer publicEndpointCustomizer() {
+        return (Operation operation, HandlerMethod handlerMethod) -> {
+            if ("registerPassenger".equals(handlerMethod.getMethod().getName())) {
+                operation.setSecurity(Collections.emptyList());
+            }
+            return operation;
+        };
     }
 }
