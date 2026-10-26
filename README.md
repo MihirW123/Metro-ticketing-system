@@ -37,8 +37,6 @@ HTTP Basic Auth -> Controller (business logic) -> Repository -> PostgreSQL
 - Entities are used directly as request and response bodies.
 - Flyway creates the schema; a seeder loads demo data on first boot.
 
-> This structure was chosen for a college viva: no Lombok, no DTO layer, no separate service layer, and no JWT. See [Design Notes](#-design-notes).
-
 ---
 
 ## ✨ Features
@@ -257,25 +255,6 @@ metro-ticketing-app/
 | `app.bootstrap.admin.last-name` | `ADMIN_LAST_NAME` | `Administrator` |
 
 JPA is set to `ddl-auto=validate`; Flyway owns the schema. `open-in-view=true` allows entities with lazy relations to be serialized safely.
-
----
-
-## 🧠 Design Notes (for viva)
-
-**Why no DTO folder?**
-Repositories handle database access; entities map tables. This project is deliberately kept small, so entities are also used as request/response bodies. `@Transient` fields carry foreign-key IDs that are not database columns, `User.password` is write-only, and relations are read-only in JSON.
-
-**Why no service folder?**
-The professor asked to keep only syllabus concepts. Business logic lives in the controllers, and `@Transactional` is applied at controller methods. Repositories still isolate all SQL/JPA work.
-
-**Why no Lombok?**
-Getters, setters and constructors are written explicitly so every line can be explained. No annotation processor is required.
-
-**Why HTTP Basic instead of JWT?**
-Authentication is out of the current syllabus. Basic auth keeps database users, BCrypt hashes and role rules without token classes, refresh tokens or filters.
-
-**Why use entities directly?**
-It removes mapping code. Safety is preserved with Bean Validation on entity fields, `@JsonProperty(access = WRITE_ONLY)` for passwords and `@JsonProperty(access = READ_ONLY)` for relations.
 
 ---
 
