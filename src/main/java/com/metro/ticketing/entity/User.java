@@ -2,10 +2,22 @@ package com.metro.ticketing.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import jakarta.persistence.*;
+import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.PrePersist;
+import jakarta.persistence.Table;
+import jakarta.persistence.Transient;
 import jakarta.validation.constraints.NotBlank;
 
 import java.time.LocalDate;
+import java.util.UUID;
 
 @Entity
 @Table(name = "\"User\"")
@@ -14,6 +26,8 @@ public class User {
 
     @Id
     @Column(name = "\"UserId\"", length = 50)
+    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
+    @Schema(accessMode = Schema.AccessMode.READ_ONLY, description = "Auto-generated user ID")
     private String userId;
 
     @NotBlank(message = "First name is required")
@@ -41,6 +55,7 @@ public class User {
     private LocalDate registrationDate = LocalDate.now();
 
     @Column(name = "\"isActive\"")
+    @JsonProperty("isActive")
     private Boolean isActive = true;
 
     @Column(name = "\"HireDate\"")
@@ -54,6 +69,41 @@ public class User {
     @Transient
     @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     private String stationId;
+
+    public User() {
+    }
+
+    public User(String userId, String firstName, String lastName, String password, Role role,
+                String contact, LocalDate registrationDate, Boolean isActive, LocalDate hireDate, Station station) {
+        this.userId = userId;
+        this.firstName = firstName;
+        this.lastName = lastName;
+        this.password = password;
+        this.role = role;
+        this.contact = contact;
+        this.registrationDate = registrationDate;
+        this.isActive = isActive;
+        this.hireDate = hireDate;
+        this.station = station;
+    }
+
+    @PrePersist
+    public void onCreate() {
+        if (this.userId == null && this.role != null) {
+            String prefix = switch (this.role) {
+                case PASSENGER -> "PASS";
+                case ADMIN -> "ADMIN";
+                case TICKET_AGENT, MAINTENANCE_STAFF -> "EMP";
+            };
+            this.userId = prefix + "-" + UUID.randomUUID().toString();
+        }
+        if (this.registrationDate == null) {
+            this.registrationDate = LocalDate.now();
+        }
+        if (this.isActive == null) {
+            this.isActive = true;
+        }
+    }
 
     public String getUserId() {
         return userId;
@@ -136,7 +186,13 @@ public class User {
     }
 
     public String getStationId() {
-        return stationId;
+        if (stationId != null) {
+            return stationId;
+        }
+        if (station != null) {
+            return station.getStationId();
+        }
+        return null;
     }
 
     public void setStationId(String stationId) {

@@ -5,6 +5,7 @@ import com.metro.ticketing.entity.Station;
 import com.metro.ticketing.entity.User;
 import com.metro.ticketing.repository.StationRepository;
 import com.metro.ticketing.repository.UserRepository;
+import io.swagger.v3.oas.annotations.security.SecurityRequirements;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -34,6 +35,7 @@ public class AuthController {
 
     @PostMapping("/passenger/register")
     @Transactional
+    @SecurityRequirements
     public ResponseEntity<User> registerPassenger(@Valid @RequestBody User request) {
         if (userRepository.findByContact(request.getContact()).isPresent()) {
             throw new IllegalArgumentException("User with this contact already exists.");
